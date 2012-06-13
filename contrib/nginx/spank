@@ -1,0 +1,22 @@
+upstream spank {
+        server 127.0.0.1:8000;
+        server 127.0.0.1:8001;
+        server 127.0.0.1:8002;
+        server 127.0.0.1:8003;
+}
+
+server {
+    listen 80 default;
+    location = /favicon.ico {
+        rewrite (.*) /app/img/favicon.ico;
+    }
+    location /app {
+        alias /usr/local/lib/python2.7/dist-packages/spank/web/client/app/;
+        
+    }
+    location / {
+        include fastcgi_params;
+        proxy_pass http://spank;
+    }
+
+}

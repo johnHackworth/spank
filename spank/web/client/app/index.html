@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html" ng-app="spank">
+<head>
+    <meta charset="utf-8">
+    <title>Spank</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="matiassurdi@gmail.com">
+    <link href="css/spank.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <script src="lib/jquery.min.js"></script>
+    <script src="lib/bootstrap.min.js"></script>
+    <script src="lib/underscore.min.js"></script>
+    <script src="lib/jquery.flot.js"></script>
+    <script src="lib/jquery.flot.selection.js"></script>
+    <script src="lib/angular/angular.min.js"></script>
+    <script src="lib/angular/angular-resource.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/directives.js"></script>
+</head>
+<body id="spank">
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container-fluid">
+            <a class="btn btn-navbar" data-toggle="collapse"
+               data-target=".nav-collapse"> <span class="icon-bar"></span> <span
+                    class="icon-bar"></span> <span class="icon-bar"></span> </a><a class="brand" href="#">Spank</a>
+            <div class="nav-collapse">
+                <ul class="nav" ng-controller="NavController">
+                    <li ng-class="activeClass('/search')">
+                        <a href="#/search/">Search</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="loading">
+        <span class="label label-info">Loading...</span>
+    </div>
+
+</div>
+
+
+<div id="section-content" class="span12" ng-view>
+</div>
+
+
+</body>
+</html>
+
+

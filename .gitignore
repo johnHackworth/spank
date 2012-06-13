@@ -1,0 +1,10 @@
+.project
+.idea
+.DS_Store
+build/
+MANIFEST
+deploy.sh
+scripts/
+dist/
+*.swp
+*.pyc

@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+# Copyright 2012 Matias Surdi
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+import sys
+import argparse
+from spank.forwarder import Forwarder
+from spank.log import initialize_logging
+
+#destination d_opslog {
+#    program("exec /usr/local/bin/spank_forwarder -u http://127.0.0.1:5000/api/logs/"  template("level=$LEVEL\nfacility=$FACILITY\nhost=$HOST\ntime:timestamp=$UNIXTIME\nprogram=$PROGRAM\nmessage=$MESSAGE\nend\n"));
+#    };
+#log {source(s_local); filter(f_opslog);destination(d_opslog);};
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Spank worker process')
+    parser.add_argument("-D","--debug",help="Enable debug output",default=False,action="store_true")
+    parser.add_argument("-L","--logging",help="Logging host:port or device. (default=%(default)s)",default="localhost:514")
+    parser.add_argument("-u","--url",help="Comma separated list of URLs to post log entries, default=%(default)s",default="http://127.0.0.1:5000/api/logs/")
+    parser.add_argument("-o","--log-format",help="Log format. Default=%(default)s",default=os.path.basename(sys.argv[0]) + " %(name)s %(levelname)s %(message)s")
+    args = parser.parse_args()
+    initialize_logging(args,"spank.forwarder")
+    forwarder = Forwarder(servers=args.url.split(","))
+    forwarder.forward()
+

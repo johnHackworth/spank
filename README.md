@@ -1,0 +1,79 @@
+Spank
+=====
+
+Introduction
+------------
+Spank is a tool for receiving, indexing and browsing server and application logs. See [Spanklogs.org](http://spanklogs.org/) for further info.
+
+Installation
+------------
+
+*Note* There is a Virtualbox VM based distribution if all you want to do is test or play with it. Again, refer to [Spanklogs.org](http://spanklogs.org/) for the details.
+
+  1. Install and setup ElasticSearch, refer to the official docs at [elasticsearch.org](http://elasticsearch.org)
+  2. Replace your current syslog daemon with syslog-ng, on debian based distribution it should be as easy as running
+     the following command:
+     ```
+     $ sudo apt-get install syslog-ng
+     ```
+
+  3. Downlaod the latest tar.gz from https://github.com/msurdi/spank/downloads, extract, and cd to it.
+     ```
+     tar xvzf spank-x.x.tar.gz
+     cd spank
+     ```
+  4. Ensure you are running python >= 2.7 and pip
+     ```
+     $ python -V
+     Python 2.7.3
+     $ pip --version
+     pip 1.0 from /usr/lib/python2.7/dist-packages (python 2.7)
+     ```
+  5. Install python dependencies listed in the requirements.txt file:
+     ```
+     $ sudo pip install -r requirements.txt
+     ```
+  6. Install spank package
+      ```
+      $ sudo python setup.py
+      ```
+  7. Install (if you don't have it already) supervisord, in debian based distros it should be as easy as:
+     ```
+     $ sudo apt-get install supervisor
+     ```
+  8. Copy and modify the example supervisor configuration file:
+     ```
+     $ sudo cp contrib/supervisor/spank.conf /etc/supervisor/conf.d/  # Check the file and adapt it to your needs
+     ```
+  9. Edit syslog-ng configuration to pipe log entries to spank forwarder.Restart syslog-ng.Look at the example syslog-ng
+     config in contrib/syslog-ng/spank.conf.
+  10. Install nginx web server and setup a virtualhost for Spank, look at the example config in contrib/nginx/spank. If you don't
+     know the path to the web interface static files, try with:
+     ```
+     $ python
+     Python 2.7.3 (default, Apr 20 2012, 22:39:59) 
+     [GCC 4.6.3] on linux2
+     Type "help", "copyright", "credits" or "license" for more information.
+     >>> import spank
+     >>> spank.__file__
+     '/usr/local/lib/python2.7/dist-packages/spank/__init__.pyc'
+     ```
+     Then the static file path for nginx config will be: ```/usr/local/lib/python2.7/dist-packages/spank/web/client```
+
+Some things to keep in mind
+   * Ensure syslog-ng is listening on port udp/514, on the _external_ ip address you want to send logs to
+   * The _-L /dev/log_ part of the supervisor config example makes Spank own logs go over the local logging device. In the provided
+     syslog-ng example file, we send to the index just what is received from the network. This way, we avoid an infinite loop that could
+     happen if we generate logs when indexing, which are later indexed, which generate logs again, and so on.
+
+Have you found any problem? Open up a ticket at https://github.com/msurdi/spank/tickets and we will do our best to fix it.
+
+Issues
+------
+If you found any problem, please, submit a bug report at [https://github.com/msurdi/spank/issues/]
+
+License
+-------
+This software is licensed under the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
+
+
