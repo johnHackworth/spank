@@ -37,9 +37,14 @@ class BaseAPIHandler(tornado.web.RequestHandler):
             # Setup parameters
             q = self.get_argument("q","*:*")
             count = self.get_argument("count",30)
+            from_ = self.get_argument("from",0)
+            before = self.get_argument("before",time.time())
+            after = self.get_argument("after",0)
+
             try:
-                index_request = IndexRequest().query(Query(q,tzoffset=self._get_tzoffset())).size(count).sort(self.sort_field,
-                    self.sort_direction)
+                time_filter = RangeFilter("time", int(after)*1000,int(before)*1000,False,False)
+                index_request = IndexRequest().query(Query(q,tzoffset=self._get_tzoffset())).size(int(count)).sort(self.sort_field,
+                    self.sort_direction).filter(time_filter)
                 index_response = self.application.index.search(index_request, doctypes=[self.doctype])
                 self.logger.debug("Index Response: %s" % str(index_response)[20])
             except InvalidQueryException, e:

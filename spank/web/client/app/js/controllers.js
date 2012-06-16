@@ -1,11 +1,11 @@
 /*
  Copyright 2012 Matias Surdi
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+ http://www.apache.org/licenses/LICENSE-2.0
 
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
-*/
+ */
 'use strict';
 
 /* Controllers */
@@ -24,7 +24,7 @@ function SettingsController($scope, $location) {
 
 function NavController($scope, $location) {
     $scope.activeClass = function (path) {
-        if ($scope.path.substring(0, path.length) === path)
+        if (path.substring(0, path.length) === path)
             return "active";
         else
             return "";
@@ -61,14 +61,36 @@ function ShowChartController($scope, $location, Charts) {
 
 
 function SearchController($scope, $routeParams, $location, Logs) {
-
     var getResultMode = function () {
         if ($scope.query.match("\\|chart$"))
             $scope.resultMode = "chart";
         else
             $scope.resultMode = "list";
 
-    }
+    };
+
+    $scope.loadMorePrev = function () {
+
+        var lastLog = $scope.logs.length;
+        var moreLogs = Logs.query({q:$scope.query, before:$scope.logs[0].time / 1000}, function (newLogs) {
+            for (var i in newLogs) {
+                //$scope.logs = newLogs.concat($scope.logs);
+                $scope.logs.unshift(newLogs[i]);
+            }
+
+        });
+
+    };
+    $scope.loadMoreNext = function () {
+
+        Logs.query({q:$scope.query, after:$scope.logs[$scope.logs.length - 1].time / 1000}, function (newLogs) {
+            for (var i in newLogs) {
+                $scope.logs.push(newLogs[i]);
+            }
+            $scope.loadingNext = false;
+        });
+    };
+
     // Search submit
     $scope.submitSearch = function () {
         getResultMode();
@@ -79,15 +101,16 @@ function SearchController($scope, $routeParams, $location, Logs) {
 
     // Update log results
     $scope.update = function () {
+
         //TODO: The replacement string must be a regexp like |.*
 
         switch ($scope.resultMode) {
-            case "list":
-                $scope.resultTemplate = "partials/search_list.html";
-                $scope.logs = Logs.query({q:$scope.query});
-                break;
             case "chart":
                 $scope.resultTemplate = "partials/search_chart.html";
+                break;
+            default:
+                $scope.resultTemplate = "partials/search_list.html";
+                $scope.logs = Logs.query({q:$scope.query});
                 break;
         }
 

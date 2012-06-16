@@ -16,6 +16,7 @@
 import logging
 import re
 import datetime
+import time
 from tornado.escape import json_encode,json_decode
 from spank import esclient
 
@@ -68,13 +69,40 @@ class InvalidQueryException(Exception):
 
 
 class RangeFilter(object):
-    def __init__(self, field, from_, to):
+    def __init__(self, field, from_=None, to=None,include_lower=True,include_upper=True):
         self._field = field
+        self._from = from_ or 0
+        self._to = to or time.time()
+        self._include_lower = include_lower
+        self._include_upper = include_upper
+
+    def from_(self,from_):
         self._from = from_
-        self._to = to
+        return self
+
+    def to(self,to):
+        self.to = to
+        return self
+
+    def include_lower(self,include_lower):
+        self._include_lower = include_lower
+        return self
+
+    def include_upper(self,include_upper):
+        self._include_upper = include_upper
+        return self
 
     def get(self):
-        return JSONDict({"range": {self._field: {"from": self._from, "to": self._to}}})
+        return JSONDict({
+            "range": {
+                self._field: {
+                    "from": self._from, 
+                    "to": self._to,
+                    "include_lower": self._include_lower,
+                    "include_upper": self._include_upper
+                    },
+               }
+        })
 
     def __str__(self):
         return str(self.get())
@@ -135,15 +163,21 @@ class JSONDict(dict):
 
 
 class IndexRequest(object):
-    def __init__(self,query=None,facets=set(),size=None,sort_field=None,sort_direction=None):
+    def __init__(self,query=None,facets=set(),size=None,sort_field=None,sort_direction=None,from_=None):
         self._query = query
         self._facets = facets
         self._size = size
         self._sort_field = sort_field
         self._sort_direction = sort_direction
+        self._from = from_
+        self._filter = None
 
     def query(self, query):
         self._query = query
+        return self
+
+    def filter(self, filter):
+        self._filter = filter
         return self
 
     def facet(self, facet):
@@ -152,6 +186,10 @@ class IndexRequest(object):
 
     def size(self, size):
         self._size = size
+        return self
+
+    def from_(self,from_):
+        self._from = from_
         return self
 
     def sort_field(self,sort_field):
@@ -169,8 +207,6 @@ class IndexRequest(object):
 
     def get(self):
         request = {}
-        if self._query:
-            request["query"] = self._query.get()
         if self._facets:
             for facet in self._facets:
                 if not request.has_key("facets"):
@@ -178,10 +214,23 @@ class IndexRequest(object):
                 request["facets"].update(facet.get())
         if self._size is not None:
             request["size"] = self._size
+    
+        if self._from is not None:
+            request["from"] = self._from
 
         if self._sort_field and self._sort_direction:
             request["sort"] = {self._sort_field: self._sort_direction}
 
+
+        if self._filter:
+            request["query"] = {}
+            request["query"]["filtered"] = {}
+            request["query"]["filtered"]["filter"] = self._filter.get()
+            if self._query:
+                request["query"]["filtered"]["query"] = self._query.get()
+        else:
+            if self._query:
+                request["query"] = self._query.get()
         return JSONDict(request)
 
     def __str__(self):
@@ -233,6 +282,7 @@ class Index(object):
             self._es.index(index=index, doctype=doctype, body=doc, docid=(docid or doc["id"]))
 
     def search(self, query, indexes=["main"], doctypes=[]):
+        self._logger.debug("Runing query: %s" % str(query))
         try:
             #TODO: Generate the correct path
             path = "/" + ",".join(indexes) + "/" + ",".join(doctypes) + "/_search"
@@ -244,6 +294,7 @@ class Index(object):
         return response
 
     def msearch(self, queries, search_type="count", index="main"):
+        self._logger.debug("Runing queries: %s"  % str(queries))
         path = "/_msearch"
         method = "GET"
         header = str(JSONDict({"index": index, "search_type": search_type}))

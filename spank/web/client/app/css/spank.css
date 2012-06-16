@@ -26,7 +26,7 @@ body {
     background-color: white;
     border: 1px solid #ccc;
     color: #000;
-    width:300px;
+    width: 300px;
 }
 
 .navbar-search .search-query:focus {
@@ -81,7 +81,6 @@ body {
     margin-bottom: 20px;
 }
 
-
 /*charts */
 
 .chart div {
@@ -93,3 +92,6 @@ body {
     color: white;
 }
 
+.scrollable {
+    overflow: auto;
+}
