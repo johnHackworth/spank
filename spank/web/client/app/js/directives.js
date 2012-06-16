@@ -131,7 +131,7 @@ angular.module('spank.directives', []).
 
 
             scope.$watch(function () {
-                return scope.data()
+                return scope.data
             }, function (value) {
 
                 buildChart(value);
@@ -146,9 +146,9 @@ angular.module('spank.directives', []).
                 '<div style="width:900px;height:40px;" id="chart-overview"></div></div>',
             replace:true,
             scope:{
-                title:'bind',
-                subtitle:'bind',
-                data:'accessor'
+                title:'@',
+                subtitle:'@',
+                data:'='
             }};
 
 
