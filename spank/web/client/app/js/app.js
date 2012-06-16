@@ -20,11 +20,11 @@ angular.module('spank', ['spank.filters', 'spank.services', 'spank.directives', 
     "angularBootstrap.modal"]).
     config(['$routeProvider', function ($routeProvider) {
     $routeProvider.when('/search/chart/', {
-        template:'partials/search.html',
+        templateUrl:'partials/search.html',
         controller:SearchController
     });
     $routeProvider.when('/search/', {
-        template:'partials/search.html',
+        templateUrl:'partials/search.html',
         controller:SearchController
     });
 
