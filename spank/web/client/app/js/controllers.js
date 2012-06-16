@@ -72,29 +72,19 @@ function SearchController($scope, $routeParams, $location, Logs) {
     $scope.loadMorePrev = function () {
 
         var lastLog = $scope.logs.length;
-        var moreLogs = Logs.query({q:$scope.query, before:$scope.logs[0].time / 1000}, function (newLogs) {
-            for (var i in newLogs) {
-                //$scope.logs = newLogs.concat($scope.logs);
-                $scope.logs.unshift(newLogs[i]);
-            }
-
-        });
-
-    };
-    $scope.loadMoreNext = function () {
-
-        Logs.query({q:$scope.query, after:$scope.logs[$scope.logs.length - 1].time / 1000}, function (newLogs) {
+        var moreLogs = Logs.query({q:$scope.query, before:$scope.logs[$scope.logs.length - 1].time / 1000}, function (newLogs) {
             for (var i in newLogs) {
                 $scope.logs.push(newLogs[i]);
             }
-            $scope.loadingNext = false;
+
         });
+
     };
+
 
     // Search submit
     $scope.submitSearch = function () {
         getResultMode();
-        //$scope.query = $scope.query.replace("|chart", "");
         $scope.update();
 
     };

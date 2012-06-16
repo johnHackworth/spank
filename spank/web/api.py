@@ -37,7 +37,6 @@ class BaseAPIHandler(tornado.web.RequestHandler):
             # Setup parameters
             q = self.get_argument("q","*:*")
             count = self.get_argument("count",30)
-            from_ = self.get_argument("from",0)
             before = self.get_argument("before",time.time())
             after = self.get_argument("after",0)
 
@@ -53,7 +52,7 @@ class BaseAPIHandler(tornado.web.RequestHandler):
             try:
                 if index_response.has_key("hits"):
                     response = [entry["_source"] for entry in index_response["hits"]["hits"]]
-                    response.reverse()
+                    #response.reverse()
             except InvalidQueryException, e:
                 response = []
         else:

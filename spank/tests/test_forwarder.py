@@ -10,7 +10,6 @@ class IncorrectOutputException(Exception):
 
 class FakeForwarderRequest(ForwarderRequest):
     def submit(self):
-        import pdb;pdb.set_trace()
         if self.payload != SAMPLE_OUTPUT:
             raise IncorrectOutputException(self.payload)
 

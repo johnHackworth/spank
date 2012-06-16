@@ -25,39 +25,13 @@ angular.module('spank.directives', []).
         elm.text(version);
     };
 }])
-    .directive('whenScrolledUp', function ($window, $rootElement) {
-        return function (scope, elm, attr) {
-            var jqWindow = $($window);
-            var isScrolling = false;
-
-            jqWindow.bind('scroll', function () {
-                if (!isScrolling) {
-                    if (jqWindow.scrollTop() == -5) {
-                        isScrolling = true;
-                        scope.$apply(attr.whenScrolledUp);
-                    }
-                }
-                if (jqWindow.scrollTop() == 0) {
-                    isScrolling = false;
-                }
-            });
-        };
-    })
 
     .directive('whenScrolledDown', function ($window, $rootElement) {
         return function (scope, elm, attr) {
-            var jqWindow = $($window);
-            var jqRootElement = $($rootElement);
-            var isScrolling = false;
-            jqWindow.bind('scroll', function () {
-                if (!isScrolling) {
-                    if (jqWindow.scrollTop() > jqRootElement.height() - jqWindow.height() + 5) {
-                        isScrolling = true;
-                        scope.$apply(attr.whenScrolledDown);
-                    }
-                }
-                if (jqWindow.scrollTop() == jqRootElement.height() - jqWindow.height()) {
-                    isScrolling = false;
+            var raw = elm[0];
+            elm.bind('scroll', function () {
+                if (raw.scrollTop + raw.offsetHeight >= raw.scrollHeight) {
+                    scope.$apply(attr.whenScrolledDown);
                 }
 
             });
