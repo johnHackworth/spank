@@ -66,11 +66,21 @@ Some things to keep in mind
      syslog-ng example file, we send to the index just what is received from the network. This way, we avoid an infinite loop that could
      happen if we generate logs when indexing, which are later indexed, which generate logs again, and so on.
 
-Have you found any problem? Open up a ticket at https://github.com/msurdi/spank/tickets and we will do our best to fix it.
-
 Issues
 ------
 If you found any problem, please, submit a bug report at [https://github.com/msurdi/spank/issues/]
+
+Tests
+-----
+Currently there are not so many tests as it should, but you can run the existing python one by running:
+
+```
+$ python -m unittest discover
+```
+
+in the root of the project. Ensure you have installed the python modules _mock_ and _simplejson_ additionaly to the ones in
+requirements.txt file.
+
 
 License
 -------
