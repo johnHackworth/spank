@@ -64,7 +64,6 @@ class Forwarder(object):
     def forward(self):
         log_entry = self._read_input()
         while log_entry:
-            #log_entry["received"] = isodate.isodatetime.datetime_isoformat(datetime.datetime.now())
             log_entry["received"] = int(time.time()*1000)
             self.send(log_entry)
             log_entry = self._read_input()
