@@ -52,7 +52,6 @@ class BaseAPIHandler(tornado.web.RequestHandler):
             try:
                 if index_response.has_key("hits"):
                     response = [entry["_source"] for entry in index_response["hits"]["hits"]]
-                    #response.reverse()
             except InvalidQueryException, e:
                 response = []
         else:
