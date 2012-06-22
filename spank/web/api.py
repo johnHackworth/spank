@@ -31,38 +31,47 @@ class BaseAPIHandler(tornado.web.RequestHandler):
     def _get_tzoffset(self):
         return self.get_argument("tzoffset",self.application.settings["tzoffset"])
 
-    def get(self, entry_id):
+    @tornado.web.asynchronous
+    def get(self, entry_id,filters=[]):
         response = []
         if entry_id is None:
             # Setup parameters
             q = self.get_argument("q","*:*")
-            count = self.get_argument("count",30)
-            before = self.get_argument("before",time.time())
-            after = self.get_argument("after",0)
+            count = int(self.get_argument("count",30))
+            from_ = int(self.get_argument("from",0))            
 
-            try:
-                time_filter = RangeFilter("time", int(after)*1000,int(before)*1000,False,False)
-                index_request = IndexRequest().query(Query(q,tzoffset=self._get_tzoffset())).size(int(count)).sort(self.sort_field,
-                    self.sort_direction).filter(time_filter)
-                index_response = self.application.index.search(index_request, doctypes=[self.doctype])
-                self.logger.debug("Index Response: %s" % str(index_response)[20])
-            except InvalidQueryException, e:
-                self.send_error(500,message="Invalid query\n")
+            index_request = IndexRequest().query(Query(q,tzoffset=self._get_tzoffset())).size(count).sort(self.sort_field,
+                self.sort_direction).from_(from_)
+            for f in filters:
+                index_request.filter(f)
 
-            try:
-                if index_response.has_key("hits"):
-                    response = [entry["_source"] for entry in index_response["hits"]["hits"]]
-            except InvalidQueryException, e:
-                response = []
+            self.application.index.search(index_request.get(), doctypes=[self.doctype],callback=self.get_callback)
         else:
-            index_response = self.application.index.get(self.doctype, entry_id)
-            if not index_response["exists"]:
-                self.send_error(404,message="Document not found")
-            else:
-                response = index_response["_source"]
+            self.application.index.get(doctype=self.doctype, docid=entry_id,callback=self.get_one_callback)
+
+    def get_one_callback(self,index_response):
+        self.logger.debug("Index Response: %s" % str(index_response)[20])
+        self.set_header("Content-Type", "application/json")
+        
+        if index_response["exists"]:
+            self.write(json_encode(index_response["_source"]))
+        else:
+            self.write(json_encode({}))
+            self.send_error(404,message="Document not found")
+        self.finish()
+
+    
+
+    def get_callback(self,index_response):
+        self.logger.debug("Index Response: %s" % str(index_response)[20])
+        response = []
+        if index_response.has_key("hits"):
+            response = [entry["_source"] for entry in index_response["hits"]["hits"]]
         self.set_header("Content-Type", "application/json")
         self.write(json_encode(response))
+        self.finish()
 
+    @tornado.web.asynchronous
     def post(self):
         data = None
         try:
@@ -72,8 +81,13 @@ class BaseAPIHandler(tornado.web.RequestHandler):
         self.logger.debug(data)
         entry_id = str(uuid.uuid1())
         data["id"] = entry_id
-        self.application.index.add(data, doctype=self.doctype, docid=entry_id)
-        self.write({"id": str(entry_id)})
+        self.application.index.add(data, doctype=self.doctype, docid=entry_id,callback=self.post_callback)
+
+    
+    def post_callback(self,index_response):
+        self.write({"id": index_response["_id"]})
+        self.finish()
+
 
     def delete(self, id_):
         self.send_error(501,message="Not implemented")
@@ -111,11 +125,12 @@ class ChartsAPIHandler(BaseAPIHandler):
             RangeFilter("time", from_millis, to_millis))
         index_request = IndexRequest().size(0).facet(facet).query(query)
         self.logger.debug(str(index_request))
-        index_response = self.application.index.search(index_request)
+        index_response = self.application.index.search(index_request.get())
         self.logger.debug(str(index_response)[:100])
         data = [(point["time"], point["count"]) for point in index_response["facets"]["dataset_facet"]["entries"]]
         return data
 
+    #TODO: make this method async
     def get(self, chart_id=None):
         if chart_id:
             index_response = self.application.index.get("charts", chart_id)
@@ -178,8 +193,14 @@ class LogsAPIHandler(BaseAPIHandler):
         self.doctype = "logs"
 
     def get(self, log_id=None):
-        return super(LogsAPIHandler, self).get(log_id)
-
+        if log_id:
+            return super(LogsAPIHandler, self).get(log_id)
+        else:
+            before = int(float(self.get_argument("before",time.time())) * 1000)
+            after = int(float(self.get_argument("after",0)) * 1000)
+            time_filter = RangeFilter("time", after,before,False,False)
+            return super(LogsAPIHandler, self).get(log_id,filters=[time_filter])
+            
     def post(self):
         return super(LogsAPIHandler, self).post()
 

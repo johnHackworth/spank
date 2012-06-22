@@ -20,7 +20,9 @@ from spank.index import Index
 
 HANDLERS=[
     (r"/api/logs/?", LogsAPIHandler),
+    (r"/api/logs/(.*)", LogsAPIHandler),
     (r"/api/charts/?", ChartsAPIHandler),
+    (r"/api/charts/(.*)", ChartsAPIHandler),
     (r"/app/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "client/app")}),
     (r"/", tornado.web.RedirectHandler,{"url":"/app/index.html"}),
 ]

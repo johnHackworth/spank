@@ -18,7 +18,7 @@ import re
 import datetime
 import time
 from tornado.escape import json_encode,json_decode
-from spank import esclient
+from spank import estornudo
 
 DATETIME_REGEX = [
     '(?P<day>\d{1,2})/(?P<month>\d{1,2})/(?P<year>\d{4}) (?P<hour>\d{1,2}):(?P<minute>\d{1,2}):(?P<second>\d{1,2})(?P<tzoffset>[+-]{1}\d{2}:\d{2})',
@@ -273,52 +273,18 @@ class Index(object):
     def __init__(self, servers):
         self._logger = logging.getLogger("spank.index")
         self._servers = servers
-        self._es = esclient.ESClient(self._servers[0])
+        self._es = estornudo.ES(self._servers)
 
-    def add(self, docs, index="main", doctype="", docid=None):
-        if not type(docs) == list:
-            docs = [docs]
-        for doc in docs:
-            self._es.index(index=index, doctype=doctype, body=doc, docid=(docid or doc["id"]))
+    def add(self, doc, index="main", doctype="", docid=None,callback=None):
+        response = self._es.index(index=index, doctype=doctype, body=doc, docid=(docid or doc["id"]),callback=callback)
+        return response
 
-    def search(self, query, indexes=["main"], doctypes=[]):
+    def search(self, query, indexes=["main"], doctypes=[],callback=None):
         self._logger.debug("Runing query: %s" % str(query))
-        try:
-            #TODO: Generate the correct path
-            path = "/" + ",".join(indexes) + "/" + ",".join(doctypes) + "/_search"
-            response = self._es.send_request("GET", path, body=str(query), encode_json=False)
-            return json_decode(self._es.last_response.text)
-        except esclient.ESClientException, e:
-            self._logger.error("Error processing query: %s" % str(e))
-            raise InvalidQueryException(e.message)
+        response = self._es.search(indexes=indexes,doctypes=doctypes,query=query,callback=callback)
         return response
 
-    def msearch(self, queries, search_type="count", index="main"):
-        self._logger.debug("Runing queries: %s"  % str(queries))
-        path = "/_msearch"
-        method = "GET"
-        header = str(JSONDict({"index": index, "search_type": search_type}))
-        query_body = ""
-        for query in queries:
-            query_body += header + "\n" + str(query.get()) + "\n"
-        self._logger.debug(query_body)
-
-        self._es.send_request(method, path, query_body, encode_json=False)
-        response = self._es.last_response
-        if response.status_code != 200:
-            message = response.text
-            raise InvalidQueryException(message)
-        json_response = json_decode(response.text)
-        return json_response["responses"]
-
-    def get(self, doctype, docid, index="main", fields=None):
-        try:
-            response = self._es.get(index, doctype, docid, fields)
-        except esclient.ESClientException, e:
-            self._logger.error("Error getting document from index:%s" % str(e))
-            raise InvalidQueryException(e.message)
+    def get(self, doctype, docid, index="main", fields=None,callback=None):
+        response = self._es.get(index, doctype, docid,callback=callback)
         return response
 
-    def destroy(self):
-        self._logger.warning("Destroying index")
-    
