@@ -37,7 +37,7 @@ setup(
     author="Matias Surdi",
     author_email="matiassurdi@gmail.com",
     description="Spank",
-    version="0.1",
+    version="0.2",
     packages=packages,
     package_data=package_data_files,
     scripts=[
