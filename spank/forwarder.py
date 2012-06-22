@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import sys
-import uuid
 import time
 import datetime
 import logging
