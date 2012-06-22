@@ -8,7 +8,7 @@ Spank is a tool for receiving, indexing and browsing server and application logs
 Installation
 ------------
 
-*Note* There is a Virtualbox VM based distribution if all you want to do is test or play with it. Again, refer to [Spanklogs.org](http://spanklogs.org/) for the details.
+*Note*: There is a Virtualbox VM based distribution if all you want to do is test or play with it. Again, refer to [Spanklogs.org](http://spanklogs.org/) for the details.Also, note that it is recommended to look at the downloads section to get a _stable_ snapshot of the code, as the main branch might not work all the time due to the changes I do.
 
   1. Install and setup ElasticSearch, refer to the official docs at [elasticsearch.org](http://elasticsearch.org)
   2. Replace your current syslog daemon with syslog-ng, on debian based distribution it should be as easy as running
