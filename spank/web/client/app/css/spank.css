@@ -3,15 +3,15 @@
 html {
     overflow: hidden;
 }
+
 body {
     padding: 0;
-    margin:0;
-    height:100%;
-    width:100%;
+    margin: 0;
+    height: 100%;
+    width: 100%;
     overflow: hidden;
-    background-color: #fff;
-    background-repeat: repeat-x;
-    background-position: 0 40px;
+    background: #fff repeat-x 0 40px;
+
 }
 
 .navbar-fixed-top .brand {
@@ -30,7 +30,6 @@ body {
 .navbar-fixed-top .brand:hover {
     text-decoration: none;
 }
-
 
 /* Subnav */
 .subnav {
@@ -127,7 +126,6 @@ body {
     border-radius: 0;
 }
 
-
 #loading {
     display: block;
     position: absolute;
@@ -190,8 +188,6 @@ body {
 
 }
 
-
-
 .module-info {
     margin-top: 20px;
 }
@@ -212,7 +208,7 @@ body {
     color: white;
 }
 
-#section-content > div{
+#section-content .maximize {
     margin: 0;
     padding: 0;
 
@@ -226,6 +222,6 @@ body {
 }
 
 .nowrap {
-    white-space:nowrap;
+    white-space: nowrap;
     overflow: hidden;
 }

@@ -1,15 +1,15 @@
-<div when-scrolled-down="loadMorePrev()">
-    <div class="subnav subnav-fixed">
-        <ul class="nav nav-pills">
-            <li>
-                <form id="search-form" class="navbar-search" ng-submit="submitSearch()" action="">
-                    <input id="search-input" type="text" class="search-query span4" placeholder="Search"
-                           ng-model="query">
-                </form>
-            </li>
-        </ul>
-    </div>
+<div class="subnav subnav-fixed">
+    <ul class="nav nav-pills">
+        <li>
+            <form id="search-form" class="navbar-search" ng-submit="submitSearch()" action="">
+                <input id="search-input" type="text" class="search-query span4" placeholder="Search"
+                       ng-model="query">
+            </form>
+        </li>
+    </ul>
+</div>
 
+<div when-scrolled-down="loadMorePrev()" class="maximize">
     <ng-include src="resultTemplate"></ng-include>
 </div>
 

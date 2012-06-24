@@ -72,7 +72,7 @@ function SearchController($scope, $routeParams, $location, Logs) {
     $scope.loadMorePrev = function () {
 
         var lastLog = $scope.logs.length;
-        var moreLogs = Logs.query({q:$scope.query, before:$scope.logs[$scope.logs.length - 1].time / 1000}, function (newLogs) {
+        var moreLogs = Logs.query({q:$scope.lastQuery, before:$scope.logs[0].time / 1000,from:$scope.logs.length}, function (newLogs) {
             for (var i in newLogs) {
                 $scope.logs.push(newLogs[i]);
             }
@@ -86,7 +86,6 @@ function SearchController($scope, $routeParams, $location, Logs) {
     $scope.submitSearch = function () {
         getResultMode();
         $scope.update();
-
     };
 
     // Update log results
@@ -101,6 +100,7 @@ function SearchController($scope, $routeParams, $location, Logs) {
             default:
                 $scope.resultTemplate = "partials/search_list.html";
                 $scope.logs = Logs.query({q:$scope.query});
+                $scope.lastQuery = $scope.query;
                 break;
         }
 
