@@ -18,7 +18,6 @@ import time
 import datetime
 import logging
 import urllib2
-import isodate
 from tornado.escape import json_encode
 
 class LogForwardingException(Exception):
