@@ -35,7 +35,7 @@ Installation
      ```
   6. Install spank package
       ```
-      $ sudo python setup.py
+      $ sudo python setup.py install
       ```
   7. Install (if you don't have it already) supervisord, in debian based distros it should be as easy as:
      ```
