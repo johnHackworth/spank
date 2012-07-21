@@ -47,18 +47,7 @@ Installation
      ```
   9. Edit syslog-ng configuration to pipe log entries to spank forwarder.Restart syslog-ng.Look at the example syslog-ng
      config in contrib/syslog-ng/spank.conf.
-  10. Install nginx web server and setup a virtualhost for Spank, look at the example config in contrib/nginx/spank. If you don't
-     know the path to the web interface static files, try with:
-     ```
-     $ python
-     Python 2.7.3 (default, Apr 20 2012, 22:39:59) 
-     [GCC 4.6.3] on linux2
-     Type "help", "copyright", "credits" or "license" for more information.
-     >>> import spank
-     >>> spank.__file__
-     '/usr/local/lib/python2.7/dist-packages/spank/__init__.pyc'
-     ```
-     Then the static file path for nginx config will be: ```/usr/local/lib/python2.7/dist-packages/spank/web/client```
+
 
 Some things to keep in mind
    * Ensure syslog-ng is listening on port udp/514, on the _external_ ip address you want to send logs to
