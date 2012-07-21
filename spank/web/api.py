@@ -194,21 +194,25 @@ class LiveAPIHandler(BaseAPIHandler):
 
     @tornado.web.asynchronous
     def post(self):
+
         data = None
         try:
             data = json_decode(self.request.body)
         except ValueError,e:
             self.send_error(501,message="Invalid json input")
         self.logger.debug(data)
-        entry_id = md5.md5(data["query"]).hexdigest()
-        query = data["query"]
+        query ="*:*"
+        if data.has_key("query") and data["query"]:
+            query = data["query"]
+
+        entry_id = md5.md5(query).hexdigest()
         index_request = IndexRequest().query(Query(query,tzoffset=self._get_tzoffset()))
         self.application.index.add(index_request.get(),index='_percolator', doctype=self.doctype, docid=entry_id,callback=self.post_callback)
 
 
     def post_callback(self,index_response):
-       self.write({"id": index_response["_id"]})
-       self.finish()
+        self.write({"id": index_response["_id"]})
+        self.finish()
 
 
 class LogsAPIHandler(BaseAPIHandler):
@@ -229,8 +233,10 @@ class LogsAPIHandler(BaseAPIHandler):
     def post_callback(self,index_response):
         if index_response.has_key('matches'):
             for match in index_response["matches"]:
+                self.logger.info("Percolator match for %s" % match)
                 msg = Message(body=self.request.body,routing_key=match)
                 self.application.live_messaging.publish(message=msg)
+        else:
+            self.logger.debug("No percolator matches")
         super(LogsAPIHandler,self).post_callback(index_response)
-
 

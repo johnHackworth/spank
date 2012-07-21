@@ -34,6 +34,7 @@ HANDLERS=[
     (r"/api/charts/?", ChartsAPIHandler),
     (r"/api/charts/(.*)", ChartsAPIHandler),
     (r"/app/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "client/app")}),
+    (r"/(favicon.ico)",tornado.web.StaticFileHandler,{"path":os.path.join(os.path.dirname(__file__), "client/app/img") }),
     (r"/", tornado.web.RedirectHandler,{"url":"/app/index.html"}),
 ] + LiveRouter.urls
 

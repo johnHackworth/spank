@@ -27,7 +27,9 @@ angular.module('spank.directives', []).
 }])
 
     .factory('LiveSocket', function ($rootScope) {
-        return new WebSocket("ws://localhost:5000/live");
+        var url = location.protocol + "//" + location.host + "/live";
+        console.log("Opening socket with "+url);
+        return new SockJS(url);
     })
 
     .directive('whenScrolledDown', function ($window, $rootElement) {
