@@ -19,11 +19,11 @@ from logging.handlers import SysLogHandler
 
 def initialize_logging(args,description=sys.argv[0]):
     # Setup logging
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger()
+    if args.debug:
+        logger.setLevel(level=logging.DEBUG)
+    else:
+        logger.setLevel(level=logging.INFO)
     if args.logging.startswith("/"):
         syslog_handler = SysLogHandler(args.logging)
     else:
