@@ -16,10 +16,12 @@
 import uuid
 import logging
 import time
+import md5
 import datetime
 import tornado.web
 from tornado.escape import json_encode,json_decode
 from spank.index import InvalidQueryException, Query, IndexRequest, DateHistogramFacet, RangeFilter
+from spank.message import Message
 
 class BaseAPIHandler(tornado.web.RequestHandler):
     def initialize(self):
@@ -29,7 +31,7 @@ class BaseAPIHandler(tornado.web.RequestHandler):
         self.sort_direction = "desc"
 
     def _get_tzoffset(self):
-        return self.get_argument("tzoffset",self.application.settings["tzoffset"])
+        return self.get_argument("tzoffset",self.application.tzoffset)
 
     @tornado.web.asynchronous
     def get(self, entry_id,filters=[]):
@@ -39,7 +41,7 @@ class BaseAPIHandler(tornado.web.RequestHandler):
             q = self.get_argument("q","*:*")
             count = int(self.get_argument("count",30))
             from_ = int(self.get_argument("from",0))            
-
+            
             index_request = IndexRequest().query(Query(q,tzoffset=self._get_tzoffset())).size(count).sort(self.sort_field,
                 self.sort_direction).from_(from_)
             for f in filters:
@@ -81,13 +83,11 @@ class BaseAPIHandler(tornado.web.RequestHandler):
         self.logger.debug(data)
         entry_id = str(uuid.uuid1())
         data["id"] = entry_id
-        self.application.index.add(data, doctype=self.doctype, docid=entry_id,callback=self.post_callback)
-
+        self.application.index.add(data, doctype=self.doctype, docid=entry_id,percolate=True,callback=self.post_callback)
     
     def post_callback(self,index_response):
         self.write({"id": index_response["_id"]})
         self.finish()
-
 
     def delete(self, id_):
         self.send_error(501,message="Not implemented")
@@ -186,6 +186,31 @@ class ChartsAPIHandler(BaseAPIHandler):
         return super(ChartsAPIHandler, self).post()
 
 
+class LiveAPIHandler(BaseAPIHandler):
+    def initialize(self):
+        super(LiveAPIHandler,self).initialize()
+        self.sort_field = "name"
+        self.doctype = "main"
+
+    @tornado.web.asynchronous
+    def post(self):
+        data = None
+        try:
+            data = json_decode(self.request.body)
+        except ValueError,e:
+            self.send_error(501,message="Invalid json input")
+        self.logger.debug(data)
+        entry_id = md5.md5(data["query"]).hexdigest()
+        query = data["query"]
+        index_request = IndexRequest().query(Query(query,tzoffset=self._get_tzoffset()))
+        self.application.index.add(index_request.get(),index='_percolator', doctype=self.doctype, docid=entry_id,callback=self.post_callback)
+
+
+    def post_callback(self,index_response):
+       self.write({"id": index_response["_id"]})
+       self.finish()
+
+
 class LogsAPIHandler(BaseAPIHandler):
     def initialize(self):
         super(LogsAPIHandler, self).initialize()
@@ -201,7 +226,11 @@ class LogsAPIHandler(BaseAPIHandler):
             time_filter = RangeFilter("time", after,before,False,False)
             return super(LogsAPIHandler, self).get(log_id,filters=[time_filter])
             
-    def post(self):
-        return super(LogsAPIHandler, self).post()
+    def post_callback(self,index_response):
+        if index_response.has_key('matches'):
+            for match in index_response["matches"]:
+                msg = Message(body=self.request.body,routing_key=match)
+                self.application.live_messaging.publish(message=msg)
+        super(LogsAPIHandler,self).post_callback(index_response)
 
 

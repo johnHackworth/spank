@@ -35,8 +35,10 @@ class ES(object):
             return json_decode(response.body)
             
 
-    def index(self,index,doctype,body,docid,callback=None):
-        path =  "%s/%s/%s" % (index,doctype,docid)
+    def index(self,index,doctype,body,docid,percolate=False,callback=None):
+        path =  "%s/%s/%s?" % (index,doctype,docid)
+        if percolate:
+            path +="percolate=*"
         return self._send_request(path=path,body=json_encode(body),callback=callback,method="POST")
 
     def get(self,index,doctype,docid,callback=None):

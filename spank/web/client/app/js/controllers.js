@@ -59,6 +59,27 @@ function ShowChartController($scope, $location, Charts) {
 
 }
 
+function LiveController($scope, LiveSocket, LiveQuery, Logs) {
+    $scope.onLiveClick = function (live) {
+        $scope.live = live;
+        if (live) {
+            var liveQuery = new LiveQuery({query:$scope.query});
+            liveQuery.$save();
+            LiveSocket.onmessage = function (event) {
+                $scope.$apply(function () {
+                    $scope.logs.unshift(new Logs(JSON.parse(event.data)));
+                });
+            }
+
+        }
+        else
+            LiveSocket.onmessage = function () {
+            };
+    };
+
+    // Default values
+    $scope.live = false;
+}
 
 function SearchController($scope, $routeParams, $location, Logs) {
     var getResultMode = function () {
@@ -72,13 +93,12 @@ function SearchController($scope, $routeParams, $location, Logs) {
     $scope.loadMorePrev = function () {
 
         var lastLog = $scope.logs.length;
-        var moreLogs = Logs.query({q:$scope.lastQuery, before:$scope.logs[0].time / 1000,from:$scope.logs.length}, function (newLogs) {
+        var moreLogs = Logs.query({q:$scope.lastQuery, before:$scope.logs[0].time / 1000, from:$scope.logs.length}, function (newLogs) {
             for (var i in newLogs) {
                 $scope.logs.push(newLogs[i]);
             }
 
         });
-
     };
 
 

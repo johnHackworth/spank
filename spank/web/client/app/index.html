@@ -2,7 +2,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/html" ng-app="spank">
 <head>
     <meta charset="utf-8">
-    <title>Spank</title>
+ <!--   <title>Spank</title> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="matiassurdi@gmail.com">
@@ -18,6 +18,7 @@
     <script src="lib/jquery.flot.selection.js"></script>
     <script src="lib/angular/angular.min.js"></script>
     <script src="lib/angular/angular-resource.min.js"></script>
+    <script src="lib/sockjs.min.js"></script>
     <script src="js/app.js"></script>
     <script src="js/services.js"></script>
     <script src="js/controllers.js"></script>
@@ -26,6 +27,36 @@
 </head>
 <body id="spank">
 
+<script>
+   var sock = new SockJS('http://localhost:5000/live');
+   sock.onopen = function() {
+			    $('body').append('<div> open! </div>');
+   };
+   sock.onmessage = function(e) {
+       $('body').append('<div>' + e.data + '</div>');
+   };
+   sock.onclose = function() {
+			    $('body').append('<div> closed! </div>');
+   };
+</script>
+
+<!--
+<script type="text/javascript">
+$(document).ready(function () {
+    var ws = new WebSocket("ws://localhost:5000/live");
+    ws.onmessage = function(event) {
+       $('body').append('<div>' + event.data + '</div>');
+    }
+		ws.onclose = function(event){
+			    $('body').append('<div> closed! </div>');
+		}
+    $('body').append('<div> Start! </div>');
+
+	
+});
+</script>
+-->
+<!--
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
         <a class="btn btn-navbar" data-toggle="collapse"
@@ -50,6 +81,7 @@
 <div id="section-content" ng-view>
 </div>
 
+-->
 
 </body>
 </html>

@@ -13,23 +13,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tornado.web
 import os
-from spank.web.api import LogsAPIHandler, ChartsAPIHandler
+import time
+import logging
+import tornado.web
+import tornado.ioloop
+from spank.web.api import LogsAPIHandler, ChartsAPIHandler, LiveAPIHandler
 from spank.index import Index
+from spank.message import MessagingService
+from spank.web.socket import LiveSocketHandler
+import sockjs.tornado
 
+LiveRouter = sockjs.tornado.SockJSRouter(LiveSocketHandler, '/live')
 HANDLERS=[
+#    (r"/live",LiveSocketHandler),
+    (r"/api/live/?", LiveAPIHandler),
+    (r"/api/live/(.*)", LogsAPIHandler),
     (r"/api/logs/?", LogsAPIHandler),
     (r"/api/logs/(.*)", LogsAPIHandler),
     (r"/api/charts/?", ChartsAPIHandler),
     (r"/api/charts/(.*)", ChartsAPIHandler),
     (r"/app/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "client/app")}),
     (r"/", tornado.web.RedirectHandler,{"url":"/app/index.html"}),
-]
+] + LiveRouter.urls
+
 
 
 class Application(tornado.web.Application):
     def __init__(self,**kwargs):
         super(Application,self).__init__(HANDLERS,**kwargs)
-        self.index = Index(servers=self.settings["index_servers"])
+        self.logger = logging.getLogger(self.__class__.__name__)        
 
+        # Setup index service
+        self.index = Index(server_url=kwargs["index_server_url"])
+        LiveSocketHandler.application = self
+        # Setup messaging service
+        self.live_messaging = MessagingService(
+            host=kwargs["messaging_server_host"],
+            port=kwargs["messaging_server_port"],
+            password=kwargs["messaging_server_password"],
+            username=kwargs["messaging_server_username"],
+            virtual_host=kwargs["messaging_server_vhost"],
+        )
+        self.tzoffset = kwargs["tzoffset"]

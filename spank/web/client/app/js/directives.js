@@ -26,6 +26,10 @@ angular.module('spank.directives', []).
     };
 }])
 
+    .factory('LiveSocket', function ($rootScope) {
+        return new WebSocket("ws://localhost:5000/live");
+    })
+
     .directive('whenScrolledDown', function ($window, $rootElement) {
         return function (scope, elm, attr) {
             var raw = elm[0];

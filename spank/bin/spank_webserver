@@ -23,23 +23,35 @@ from spank.web.main import Application
 from spank.log import initialize_logging
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Spank worker process')
+    parser = argparse.ArgumentParser(description='Spank webserver process')
     parser.add_argument("-D","--debug",help="Enable debug output",default=False,action="store_true")
     parser.add_argument("-L","--logging",help="Logging host:port or device. (default=%(default)s)",default="localhost:514")
     parser.add_argument("-l","--listen",help="ip to bind, default=%(default)s",default="0.0.0.0")
     parser.add_argument("-p","--port",help="port to bind, default=%(default)s",default="5000",type=int)
-    parser.add_argument("-t","--timezone-offset",help="Default timezone offset. default=%(defaults)s",default="+02:00")
-    parser.add_argument("-i","--index-servers",help="Comma separated list of index servers to submit documents for indexing, default=%(default)s",default="http://localhost:9200/")
+    parser.add_argument("-t","--timezone-offset",help="Default timezone offset. default=%(default)s",default="+02:00")
+    parser.add_argument("-i","--index-server-url",help="Index server url to submit documents for indexing, default=%(default)s",default="http://localhost:9200/")
+    parser.add_argument("-m","--messaging-server-host",help="Messaging server host, default=%(default)s",default="localhost")
+    parser.add_argument("-r","--messaging-server-port",help="Messaging server port, default=%(default)s",default=5672,type=int)
+    parser.add_argument("-U","--messaging-server-username",help="Index server username, default=%(default)s",default="guest")
+    parser.add_argument("-P","--messaging-server-password",help="Index server password, default=%(default)s",default="guest")
+    parser.add_argument("-V","--messaging-server-vhost",help="Index server virtualhost, default=%(default)s",default="/")
     parser.add_argument("-o","--log-format",help="Log format. Default=%(default)s",default=os.path.basename(sys.argv[0]) + " %(name)s %(levelname)s %(message)s")
     args = parser.parse_args()
 
     initialize_logging(args,"spank.webserver")
  
-    app = Application(index_servers=args.index_servers.split(","), tzoffset=args.timezone_offset,debug=args.debug)
+    app = Application(
+        index_server_url=args.index_server_url,
+        messaging_server_host=args.messaging_server_host,
+        messaging_server_port=args.messaging_server_port,
+        messaging_server_username=args.messaging_server_username,
+        messaging_server_password=args.messaging_server_password,
+        messaging_server_vhost=args.messaging_server_vhost,
+        tzoffset=args.timezone_offset,
+        debug=args.debug
+    )
+
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(args.port)
     tornado.ioloop.IOLoop.instance().start()
-
-    app.config["INDEX_SERVERS"] = args.index_servers.split(",")
-    app.config["DEFAULT_TZ_OFFSET"] = args.default_timezone
 

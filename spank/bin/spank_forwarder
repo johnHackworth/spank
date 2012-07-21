@@ -25,7 +25,7 @@ from spank.log import initialize_logging
 #log {source(s_local); filter(f_opslog);destination(d_opslog);};
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Spank worker process')
+    parser = argparse.ArgumentParser(description='Spank forwarder process')
     parser.add_argument("-D","--debug",help="Enable debug output",default=False,action="store_true")
     parser.add_argument("-L","--logging",help="Logging host:port or device. (default=%(default)s)",default="localhost:514")
     parser.add_argument("-u","--url",help="Comma separated list of URLs to post log entries, default=%(default)s",default="http://127.0.0.1:5000/api/logs/")

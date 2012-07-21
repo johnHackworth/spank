@@ -33,7 +33,7 @@ DATETIME_FORMAT = "%(year)s-%(month)s-%(day)sT%(hour)s:%(minute)s:%(second)s%(tz
 
 class QueryTranslator(object):
     def __init__(self, query,tzoffset="Z"):
-        self._query = query
+        self.query = query
         self.tzoffset = tzoffset
 
     def _cleanup_datetimes(self):
@@ -51,17 +51,17 @@ class QueryTranslator(object):
         while keep_looking:
             keep_looking = False
             for f in DATETIME_REGEX:
-                match = re.search(f, self._query)
+                match = re.search(f, self.query)
                 if match:
                     time_parts = match.groupdict()
                     defaults.update(time_parts)
-                    self._query = re.sub(f, DATETIME_FORMAT % defaults, self._query, 1)
+                    self.query = re.sub(f, DATETIME_FORMAT % defaults, self.query, 1)
                     keep_looking = True
                     break
 
     def translate(self):
         self._cleanup_datetimes()
-        return self._query
+        return self.query
 
 
 class InvalidQueryException(Exception):
@@ -70,14 +70,14 @@ class InvalidQueryException(Exception):
 
 class RangeFilter(object):
     def __init__(self, field, from_=None, to=None,include_lower=True,include_upper=True):
-        self._field = field
-        self._from = from_ or 0
-        self._to = to or time.time()
-        self._include_lower = include_lower
-        self._include_upper = include_upper
+        self.field = field
+        self.from_ = from_ or 0
+        self.to = to or time.time()
+        self.include_lower = include_lower
+        self.include_upper = include_upper
 
     def from_(self,from_):
-        self._from = from_
+        self.from_ = from_
         return self
 
     def to(self,to):
@@ -85,21 +85,21 @@ class RangeFilter(object):
         return self
 
     def include_lower(self,include_lower):
-        self._include_lower = include_lower
+        self.include_lower = include_lower
         return self
 
     def include_upper(self,include_upper):
-        self._include_upper = include_upper
+        self.include_upper = include_upper
         return self
 
     def get(self):
         return JSONDict({
             "range": {
-                self._field: {
-                    "from": self._from, 
-                    "to": self._to,
-                    "include_lower": self._include_lower,
-                    "include_upper": self._include_upper
+                self.field: {
+                    "from": self.from_, 
+                    "to": self.to,
+                    "include_lower": self.include_lower,
+                    "include_upper": self.include_upper
                     },
                }
         })
@@ -239,30 +239,30 @@ class IndexRequest(object):
 
 class Query(object):
     def __init__(self, query_string="",tzoffset="Z"):
-        self._logger = logging.getLogger("spank.query")
-        self._query_string = query_string
-        self._default_operator = "AND"
+        self.logger = logging.getLogger("spank.query")
+        self.query_string = query_string
+        self.default_operator = "AND"
         self.tzoffset = tzoffset
 
 
     def default_operator(self, default_operator):
-        self._default_operator = default_operator
+        self.default_operator = default_operator
         return self
 
     def search_type(self, search_type):
-        self._search_type = search_type
+        self.search_type = search_type
         return self
 
 
     def get(self):
         query = {
             "query_string": {
-                "query": QueryTranslator(self._query_string,tzoffset=self.tzoffset).translate(),
-                "default_operator": self._default_operator
+                "query": QueryTranslator(self.query_string,tzoffset=self.tzoffset).translate(),
+                "default_operator": self.default_operator
             }
         }
 
-        self._logger.debug(query)
+        self.logger.debug(query)
         return JSONDict(query)
 
     def __str__(self):
@@ -270,21 +270,21 @@ class Query(object):
 
 
 class Index(object):
-    def __init__(self, servers):
-        self._logger = logging.getLogger("spank.index")
-        self._servers = servers
-        self._es = estornudo.ES(self._servers)
+    def __init__(self, server_url):
+        self.logger = logging.getLogger("spank.index")
+        self.server_url = server_url
+        self.es = estornudo.ES(self.server_url)
 
-    def add(self, doc, index="main", doctype="", docid=None,callback=None):
-        response = self._es.index(index=index, doctype=doctype, body=doc, docid=(docid or doc["id"]),callback=callback)
+    def add(self, doc, index="main", doctype="", docid=None,percolate=False,callback=None):
+        response = self.es.index(index=index, doctype=doctype, body=doc, docid=(docid or doc["id"]),percolate=percolate,callback=callback)
         return response
 
     def search(self, query, indexes=["main"], doctypes=[],callback=None):
-        self._logger.debug("Runing query: %s" % str(query))
-        response = self._es.search(indexes=indexes,doctypes=doctypes,query=query,callback=callback)
+        self.logger.debug("Runing query: %s" % str(query))
+        response = self.es.search(indexes=indexes,doctypes=doctypes,query=query,callback=callback)
         return response
 
     def get(self, doctype, docid, index="main", fields=None,callback=None):
-        response = self._es.get(index, doctype, docid,callback=callback)
+        response = self.es.get(index, doctype, docid,callback=callback)
         return response
 
